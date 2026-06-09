@@ -1,10 +1,32 @@
-# Agent Evaluation Configuration
-# This config defines what to evaluate and how to score it.
-model:
-  agent: "{{ database }}.{{ schema }}.{{ agent_name }}"
+# Cortex Agent Evaluation config.
+#
+# Uploaded to AGENT_EVAL_STAGE and referenced by EXECUTE_AI_EVALUATION (see
+# run_eval.sql). Scores the agent's answers against AGENT_EVAL_DATASET.
+#
+# The `dataset:` block below imports the seed TABLE into a Snowflake dataset
+# object on the FIRST run. On subsequent runs against the same dataset, remove
+# the entire `dataset:` block — the `evaluation.source_metadata.dataset_name`
+# reference below is enough once the dataset exists.
+dataset:
+  dataset_type: "CORTEX AGENT"
+  table_name: "{{ database }}.{{ schema }}.AGENT_EVAL_DATASET"
+  dataset_name: "{{ database }}.{{ schema }}.AGENT_EVALSET"
+  column_mapping:
+    query_text: "input_query"
+    ground_truth: "ground_truth"
 
-dataset: "{{ database }}.{{ schema }}.AGENT_EVAL_DATASET"
+evaluation:
+  agent_params:
+    agent_name: "{{ database }}.{{ schema }}.{{ agent_name }}"
+    agent_type: "CORTEX AGENT"
+  run_params:
+    label: "{{ agent_name }} evaluation"
+  source_metadata:
+    type: "dataset"
+    dataset_name: "{{ database }}.{{ schema }}.AGENT_EVALSET"
 
+# answer_correctness  — compares the answer to ground_truth_output (needs ground truth).
+# logical_consistency — reference-free; checks the answer is internally consistent.
 metrics:
-  - metric_name: answer_correctness
-  - metric_name: logical_consistency
+  - "logical_consistency"
+  - "answer_correctness"

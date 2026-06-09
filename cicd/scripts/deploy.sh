@@ -7,7 +7,7 @@
 #   3. Semantic views (if managed outside dbt)
 #   4. Agents
 #   5. Skill files (uploaded to internal stage)
-#   6. Eval SQL (tasks + datasets)
+#   6. Eval setup (dataset table + config stage; the eval run itself is on-demand)
 #
 # Required environment variables:
 #   ENV              — "dev" or "prod"
@@ -52,12 +52,15 @@ log_step 3 "Upload skill files"
 log_step 4 "Deploy agents"
 deploy_sql_dir "${RENDERED_DIR}" "*/agents/*"
 
-# Step 5: Deploy eval SQL (opt-in — requires the AGENT_EVAL_QUERIES seed table)
+# Step 5: Eval setup (opt-in). Creates the eval dataset table + config stage.
+# The eval RUN is on-demand — see snowflake/evals/run_eval.sql — so it is not
+# executed here. run_eval.sql is skipped by deploy (it starts a billed run and
+# needs a unique run_name each time).
 if [[ "${DEPLOY_EVALS:-false}" == "true" ]]; then
-    log_step 5 "Deploy eval SQL"
-    deploy_sql_dir "${RENDERED_DIR}" "*/evals/*"
+    log_step 5 "Deploy eval setup"
+    deploy_sql_dir "${RENDERED_DIR}" "*/evals/create_eval_dataset.sql"
 else
-    log_info "Skipping eval SQL (set DEPLOY_EVALS=true once the eval seed exists)."
+    log_info "Skipping eval setup (set DEPLOY_EVALS=true to create eval objects)."
 fi
 
 # Done
