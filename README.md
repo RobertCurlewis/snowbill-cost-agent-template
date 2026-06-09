@@ -31,12 +31,28 @@ graph TB
     end
 ```
 
-## Getting Started
+## Getting Started — let an AI assistant set it up for you
 
-1. **Fork this repository** to your GitHub/GitLab account
-2. **Read [`SETUP.md`](SETUP.md)** — the comprehensive setup guide (human + AI readable)
-3. **Fill in [`cookiecutter.yml`](cookiecutter.yml)** — your project configuration
-4. **Follow the steps** in SETUP.md to get your agent running
+This template is built to be configured **by an AI coding assistant**, so you barely have to touch SQL yourself.
+
+1. **Connect your development environment to the LLM of your choice** — Claude Code, Cursor, GitHub Copilot, Windsurf, etc. Any AI coding assistant that can read the repo and run commands works.
+2. **Open the project in its DevContainer** (`.devcontainer/`) and wait for it to build. The container ships with dbt, the Snowflake CLI, and linters preinstalled — a reproducible, ready-to-go environment.
+3. **Hand it to the AI.** Once the container is up and your assistant is connected, paste the prompt below. The assistant will read the project, help you fill in `cookiecutter.yml`, provision Snowflake, deploy the agent, and explain each step — effectively doing the setup for you.
+
+Copy and paste this to your AI assistant:
+
+```text
+I have a Snowflake Cortex Agent template project. Please read these files in order to understand how to set it up for my project:
+
+1. README.md — overview and structure
+2. cookiecutter.yml — project configuration (I need help filling this in)
+3. SETUP.md — step-by-step setup guide
+4. AGENTS.md — coding conventions and development workflow
+
+Help me configure cookiecutter.yml for my specific project, then walk me through the SETUP.md steps.
+```
+
+Prefer to do it by hand? Follow [`SETUP.md`](SETUP.md) directly — it's written to be both human- and AI-readable.
 
 ## Project Structure
 
