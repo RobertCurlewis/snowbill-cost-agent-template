@@ -1,7 +1,7 @@
 {{ config(materialized='semantic_view', tags=['semantic_view']) }}
 
 tables (
-    SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY comment='The table contains records of queries executed within a database account. Each record represents a single query execution and includes details about the query itself, the user and role that ran it, the warehouse used, and the execution outcome including any errors encountered.'
+    QUERY_HISTORY AS {{ ref('stg_account_usage__query_history') }} comment='The table contains records of queries executed within a database account. Each record represents a single query execution and includes details about the query itself, the user and role that ran it, the warehouse used, and the execution outcome including any errors encountered.'
 )
 facts (
     QUERY_HISTORY.CACHE_HIT_PERCENT as PERCENTAGE_SCANNED_FROM_CACHE*100,

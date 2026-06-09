@@ -31,8 +31,6 @@ jobs:
         run: bash scripts/lint.sh
 
   # Single environment: deploys to the one Snowflake target on merge to main.
-  # Skips until the repo is configured (SNOWFLAKE_DATABASE variable set), so a
-  # fresh fork lints green without a failing deploy.
   deploy:
     name: Deploy to Snowflake
     needs: lint
@@ -43,8 +41,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install Snowflake CLI + dbt
-        run: pip install snowflake-cli==3.17.0 dbt-core==1.11.8 dbt-snowflake==1.11.4
+      - name: Install dbt
+        run: pip install dbt-core==1.11.8 dbt-snowflake==1.11.4
+      - name: Install Snowflake CLI (isolated via pipx — its click==8.1.8 conflicts with dbt's click>=8.3)
+        run: |
+          pipx install snowflake-cli==3.17.0
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/snow" --version
       - name: Write Snowflake private key
         run: |
           printf '%s' "${SNOWFLAKE_PRIVATE_KEY}" | base64 -d > /tmp/sf_key.p8
@@ -54,7 +57,7 @@ jobs:
         run: dbt deps
       - name: Build semantic views (dbt)
         working-directory: dbt
-        run: dbt run --select tag:semantic_view
+        run: dbt run --select +tag:semantic_view  # '+' builds upstream staging wrappers first
         env:
           DBT_PROFILES_DIR: ${{ github.workspace }}/cicd/dbt
           DBT_TARGET: dev

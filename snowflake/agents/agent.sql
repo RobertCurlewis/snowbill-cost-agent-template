@@ -1,6 +1,7 @@
 USE SCHEMA {{ database }}.{{ schema }};
 CREATE OR REPLACE AGENT {{ database }}.{{ schema }}.{{ agent_name }}
   COMMENT = '{{ agent_description }}'
+  PROFILE = '{"display_name": "SnowBill", "avatar": "chart-line", "color": "blue"}'
   FROM SPECIFICATION
 $$
 {{ include('agent-specification.yml') }}

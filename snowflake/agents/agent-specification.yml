@@ -1,6 +1,11 @@
 models:
   orchestration: claude-sonnet-4-5
 
+orchestration:
+  budget:
+    seconds: 90
+    tokens: 32000
+
 instructions:
   response: |
     {{ include('system-prompt.md') }}
@@ -18,6 +23,10 @@ instructions:
 
     Use the serverless_usage_analyst tool for serverless feature credits: automatic
     clustering, Snowpipe (pipe usage), replication, and search optimization.
+
+    Use the cost_analytics_analyst tool for total/by-service credit spend and for
+    ACCURATE attribution/chargeback — credits by user, warehouse, query tag, or
+    team (object tags). Prefer it over estimates when the user asks who/what drives spend.
 
     Use the data_to_chart tool to visualise results when a chart aids understanding
     (trends over time, comparisons across warehouses/users).
@@ -56,6 +65,7 @@ instructions:
     - question: "Why did our Snowflake spend go up last week?"
     - question: "What were our most expensive queries this week, and what did they cost?"
     - question: "Which warehouses are idle or oversized, and how can we cut their cost?"
+    - question: "Which users are driving our credit spend this month?"
     - question: "Break down our Snowflake spend by role over the last month."
     - question: "Where are our serverless credits going — clustering, Snowpipe, search optimization?"
     - question: "Is the cost data up to date? Run a freshness check."
@@ -122,6 +132,15 @@ tools:
         (pipe usage), replication, and search optimization. Use for credits spent
         outside user-run warehouse compute.
   - tool_spec:
+      type: "cortex_analyst_text_to_sql"
+      name: "cost_analytics_analyst"
+      description: >-
+        Credit spend breakdown and accurate cost attribution / chargeback. Answers
+        total and by-service credit spend (METERING_DAILY_HISTORY) and ACTUAL credits
+        attributed to each user, warehouse, query tag, or team via object tags
+        (QUERY_ATTRIBUTION_HISTORY + TAG_REFERENCES). Use for "who/what is driving
+        spend" and chargeback — these are billed credits, not estimates.
+  - tool_spec:
       type: "data_to_chart"
       name: "data_to_chart"
       description: "Generates visualizations from query results."
@@ -144,6 +163,12 @@ tool_resources:
       query_timeout: 60
   serverless_usage_analyst:
     semantic_view: "{{ database }}.{{ schema }}.SV_SERVERLESS_USAGE"
+    execution_environment:
+      type: "warehouse"
+      warehouse: "{{ warehouse }}"
+      query_timeout: 60
+  cost_analytics_analyst:
+    semantic_view: "{{ database }}.{{ schema }}.SV_COST_ANALYTICS"
     execution_environment:
       type: "warehouse"
       warehouse: "{{ warehouse }}"

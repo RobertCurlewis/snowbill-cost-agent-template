@@ -1,8 +1,8 @@
 {{ config(materialized='semantic_view', tags=['semantic_view']) }}
 
 tables (
-    SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_LOAD_HISTORY comment='The table contains records of warehouse load activity over time. Each record captures a time-bounded interval for a specific warehouse, including average metrics related to running, queued, provisioning, and blocked workloads.',
-    SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY comment='The table contains records of warehouse credit consumption over time. Each record captures a specific time interval for a given warehouse, detailing the breakdown of credits used across compute and cloud services activity.'
+    WAREHOUSE_LOAD_HISTORY AS {{ ref('stg_account_usage__warehouse_load_history') }} comment='The table contains records of warehouse load activity over time. Each record captures a time-bounded interval for a specific warehouse, including average metrics related to running, queued, provisioning, and blocked workloads.',
+    WAREHOUSE_METERING_HISTORY AS {{ ref('stg_account_usage__warehouse_metering_history') }} comment='The table contains records of warehouse credit consumption over time. Each record captures a specific time interval for a given warehouse, detailing the breakdown of credits used across compute and cloud services activity.'
 )
 facts (
     WAREHOUSE_LOAD_HISTORY.AVG_BLOCKED as AVG_BLOCKED comment='The average number of queries blocked and waiting for a resource lock in the warehouse during the interval.',

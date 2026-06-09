@@ -2,27 +2,27 @@ version: 2
 
 sources:
   # ==========================================================================
-  # Define your data sources here.
-  # Each source maps to a Snowflake database + schema containing raw/curated
-  # tables you want to consume.
+  # SNOWFLAKE.ACCOUNT_USAGE — the source for SnowBill's cost semantic views.
+  # Available in every Snowflake account (requires IMPORTED PRIVILEGES on the
+  # SNOWFLAKE database, granted to the agent role during setup).
   #
-  # Pattern: Use Jinja to switch between dev/prod databases:
-  #   database: "{{ 'PROD_DB' if target.name != 'dev' else 'DEV_DB' }}"
-  #
-  # Example:
+  # The staging/ models are 1:1 wrapper views over these tables. Semantic views
+  # read the wrappers, never ACCOUNT_USAGE directly — so an adopter with a
+  # MATERIALIZED copy of any table only repoints the matching staging model
+  # (or this source), with no semantic-view changes.
   # ==========================================================================
-  - name: my_source
-    description: >
-      Example source — replace with your actual data source.
-      This maps to a schema in your Snowflake database.
-    database: "{{ 'PROD_DB' if (target.name != 'dev' or var('use_prod_sources_in_dev', false)) else 'DEV_DB' }}"
-    schema: MY_SOURCE_SCHEMA
+  - name: account_usage
+    database: SNOWFLAKE
+    schema: ACCOUNT_USAGE
+    description: "Snowflake-managed account usage share (cost, query, warehouse, serverless history)."
     tables:
-      - name: EXAMPLE_TABLE
-        description: "Replace with your actual table description"
-        # columns:
-        #   - name: ID
-        #     description: "Primary key"
-        #     tests:
-        #       - not_null
-        #       - unique
+      - name: QUERY_HISTORY
+      - name: WAREHOUSE_METERING_HISTORY
+      - name: WAREHOUSE_LOAD_HISTORY
+      - name: AUTOMATIC_CLUSTERING_HISTORY
+      - name: PIPE_USAGE_HISTORY
+      - name: REPLICATION_USAGE_HISTORY
+      - name: SEARCH_OPTIMIZATION_HISTORY
+      - name: METERING_DAILY_HISTORY
+      - name: QUERY_ATTRIBUTION_HISTORY
+      - name: TAG_REFERENCES

@@ -38,6 +38,11 @@ or too small and queueing/spilling) — and recommend concrete sizing/suspend ch
      for queueing.
    - **Healthy** — utilized, minimal queue, no spill.
 
+   **Scaling rule (critical):** queueing = too many *concurrent* queries → scale
+   **OUT** (raise `MAX_CLUSTER_COUNT`), **not** up. Spilling = a single query needs
+   more memory → scale **UP** (bigger size). Never recommend a bigger warehouse to
+   fix a queue problem.
+
 4. **Quantify.** Convert credits to currency (per the cost rate). For idle/
    oversized warehouses, estimate the savings from the recommended change.
 

@@ -21,6 +21,7 @@ models:
     +materialized: table
     +transient: false
     staging:
+      +materialized: view
       +tags: ['staging']
       +persist_docs:
         relation: true

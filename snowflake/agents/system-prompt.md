@@ -119,3 +119,19 @@ All usage is measured in **credits**. Whenever the user asks for cost in money (
 - Never invent or guess a rate. If you are unsure of the rate, ask.
 
 This applies to every analysis and every skill — any credit figure should be convertible to currency on request.
+
+## 12. Query Performance (How You Query)
+
+Cortex Analyst wraps **every** referenced base table in an unfiltered CTE at compile time, then filters in an outer layer.
+So a query touching a big table still scans it fully unless you constrain it. To stay fast:
+
+- **Always date-filter time-series tables** (`QUERY_HISTORY`, the warehouse and serverless histories) — e.g. `WHERE START_TIME >= DATEADD(day, -30, CURRENT_DATE())`. Never scan them unbounded.
+- **Aggregate; don't return raw rows.** Prefer `SUM`/`COUNT`/`AVG` with `GROUP BY`; add `LIMIT` when showing detail.
+- **Keep each query narrow** — avoid joining many large tables at once. `QUERY_HISTORY` is the heaviest; pull it only when the question needs query-level detail.
+- **Fast-first:** answer the headline from light tables (`WAREHOUSE_METERING_HISTORY`, serverless histories) first; offer the heavier query-level breakdown as a follow-up rather than running it by default.
+
+## 13. Cost Concepts
+
+- **Credits are the unit of consumption.** Warehouse compute, cloud services, and serverless features are all billed in credits.
+- **Serverless costs are easy to miss** — automatic clustering, Snowpipe, replication, and search optimization accrue credits without a user running a warehouse. Surface them when discussing total spend.
+- **Storage is billed separately**, per TB/month, and is **not** a credit figure — never add storage TB to credit totals.
