@@ -37,7 +37,7 @@ This template is built to be configured **by an AI coding assistant**, so you ba
 
 1. **Connect your development environment to the LLM of your choice** — Claude Code, Cursor, GitHub Copilot, Windsurf, etc. Any AI coding assistant that can read the repo and run commands works.
 2. **Open the project in its DevContainer** (`.devcontainer/`) and wait for it to build. The container ships with dbt, the Snowflake CLI, and linters preinstalled — a reproducible, ready-to-go environment.
-3. **Hand it to the AI.** Once the container is up and your assistant is connected, paste the prompt below. The assistant will read the project, help you fill in `cookiecutter.yml`, provision Snowflake, deploy the agent, and explain each step — effectively doing the setup for you.
+3. **Hand it to the AI.** With the container up and your assistant connected, paste the prompt below. It reads the project, fills in `cookiecutter.yml`, provisions Snowflake, and deploys the agent.
 
 Copy and paste this to your AI assistant:
 
