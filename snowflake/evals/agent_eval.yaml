@@ -1,0 +1,10 @@
+# Agent Evaluation Configuration
+# This config defines what to evaluate and how to score it.
+model:
+  agent: "{{ database }}.{{ schema }}.{{ agent_name }}"
+
+dataset: "{{ database }}.{{ schema }}.AGENT_EVAL_DATASET"
+
+metrics:
+  - metric_name: answer_correctness
+  - metric_name: logical_consistency

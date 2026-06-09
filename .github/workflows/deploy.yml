@@ -1,0 +1,98 @@
+name: Deploy Snowflake Agent
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+  SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+  SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install linters
+        run: |
+          pip install sqlfluff==4.0.0 yamllint==1.35.0
+          npm install -g markdownlint-cli2@0.22.0
+      - name: Run linters
+        run: bash scripts/lint.sh
+
+  # Single environment: deploys to the one Snowflake target on merge to main.
+  deploy:
+    name: Deploy to Snowflake
+    needs: lint
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Snowflake CLI + dbt
+        run: pip install snowflake-cli==3.17.0 dbt-core==1.11.8 dbt-snowflake==1.11.4
+      - name: Write Snowflake private key
+        run: |
+          printf '%s' "${SNOWFLAKE_PRIVATE_KEY}" | base64 -d > /tmp/sf_key.p8
+          chmod 600 /tmp/sf_key.p8
+      - name: dbt deps
+        working-directory: dbt
+        run: dbt deps
+      - name: Build semantic views (dbt)
+        working-directory: dbt
+        run: dbt run --select tag:semantic_view
+        env:
+          DBT_PROFILES_DIR: ${{ github.workspace }}/cicd/dbt
+          DBT_TARGET: dev
+          SNOWFLAKE_DATABASE_DEV: ${{ vars.SNOWFLAKE_DATABASE }}
+          SNOWFLAKE_SCHEMA: ${{ vars.SNOWFLAKE_SCHEMA }}
+          SNOWFLAKE_WAREHOUSE: ${{ vars.SNOWFLAKE_WAREHOUSE }}
+          SNOWFLAKE_ROLE_CICD: ${{ vars.SNOWFLAKE_ROLE_CICD }}
+          SNOWFLAKE_PRIVATE_KEY_PATH: /tmp/sf_key.p8
+          SNOWFLAKE_PRIVATE_KEY_PASSPHRASE: ${{ secrets.SNOWFLAKE_PRIVATE_KEY_PASSPHRASE }}
+      - name: Configure snow CLI connection
+        run: |
+          mkdir -p "${RUNNER_TEMP}/snowflake"
+          cat > "${RUNNER_TEMP}/snowflake/config.toml" <<EOF
+          default_connection_name = "default"
+          [connections.default]
+          account = "${SNOWFLAKE_ACCOUNT}"
+          user = "${SNOWFLAKE_USER}"
+          authenticator = "SNOWFLAKE_JWT"
+          private_key_file = "/tmp/sf_key.p8"
+          private_key_file_pwd = "${KEY_PWD}"
+          role = "${ROLE}"
+          warehouse = "${WAREHOUSE}"
+          database = "${DATABASE}"
+          schema = "${SCHEMA}"
+          EOF
+          chmod 600 "${RUNNER_TEMP}/snowflake/config.toml"
+        env:
+          KEY_PWD: ${{ secrets.SNOWFLAKE_PRIVATE_KEY_PASSPHRASE }}
+          ROLE: ${{ vars.SNOWFLAKE_ROLE_CICD }}
+          WAREHOUSE: ${{ vars.SNOWFLAKE_WAREHOUSE }}
+          DATABASE: ${{ vars.SNOWFLAKE_DATABASE }}
+          SCHEMA: ${{ vars.SNOWFLAKE_SCHEMA }}
+      - name: Render templates
+        run: python scripts/render_snowflake_templates.py --env dev
+      - name: Deploy to Snowflake
+        run: bash cicd/scripts/deploy.sh
+        env:
+          SNOWFLAKE_HOME: ${{ runner.temp }}/snowflake
+          ENV: dev
+          CONSUME_DB: ${{ vars.SNOWFLAKE_DATABASE }}
+          SNOWFLAKE_ROLE: ${{ vars.SNOWFLAKE_ROLE_CICD }}
+          SNOWFLAKE_WAREHOUSE: ${{ vars.SNOWFLAKE_WAREHOUSE }}
+          SNOWFLAKE_SCHEMA: ${{ vars.SNOWFLAKE_SCHEMA }}

@@ -1,0 +1,60 @@
+# =============================================================================
+# GitLab CI/CD Pipeline for Snowflake Cortex Agent
+# =============================================================================
+# Adjust image, variables, and runners to match your organisation.
+
+stages:
+  - lint
+  - deploy
+
+variables:
+  PYTHON_VERSION: "3.12"
+
+# --- Lint -------------------------------------------------------------------
+lint:
+  stage: lint
+  image: python:${PYTHON_VERSION}
+  before_script:
+    - pip install sqlfluff==4.0.0 sqlfluff-templater-dbt==4.0.0 yamllint==1.35.0
+    - apt-get update && apt-get install -y nodejs npm shellcheck
+    - npm install -g markdownlint-cli2@0.22.0
+  script:
+    - bash scripts/lint.sh
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+
+# --- Deploy Dev (on merge requests) -----------------------------------------
+deploy_dev:
+  stage: deploy
+  image: python:${PYTHON_VERSION}
+  environment:
+    name: dev
+  before_script:
+    - pip install snowflake-cli==3.17.0
+  script:
+    - python scripts/render_snowflake_templates.py --env dev
+    - bash cicd/scripts/deploy.sh
+  variables:
+    ENV: "dev"
+    CONSUME_DB: ${SNOWFLAKE_DATABASE_DEV}
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+# --- Deploy Prod (on tags) --------------------------------------------------
+deploy_prod:
+  stage: deploy
+  image: python:${PYTHON_VERSION}
+  environment:
+    name: production
+  before_script:
+    - pip install snowflake-cli==3.17.0
+  script:
+    - python scripts/render_snowflake_templates.py --env prod
+    - bash cicd/scripts/deploy.sh
+  variables:
+    ENV: "prod"
+    CONSUME_DB: ${SNOWFLAKE_DATABASE_PROD}
+  rules:
+    - if: $CI_COMMIT_TAG

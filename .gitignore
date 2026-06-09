@@ -1,0 +1,36 @@
+# dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+
+# Snowflake rendered templates
+snowflake/rendered/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+
+# Node
+node_modules/
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets (NEVER commit these)
+*.pem
+*.key
+.env
+.env.*
+credentials.json
+
+# Claude Code local settings (may contain local paths/secrets)
+.claude/settings.local.json
+.claude/settings.json

@@ -1,0 +1,13 @@
+extends: default
+
+rules:
+  line-length:
+    max: 200
+  document-start: disable
+  truthy:
+    check-keys: false
+
+ignore: |
+  dbt/target/
+  dbt/dbt_packages/
+  dbt/package-lock.yml

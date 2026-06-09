@@ -1,0 +1,13 @@
+{
+  "config": {
+    "MD013": { "line_length": 200 },
+    "MD033": false,
+    "MD041": false,
+    "MD060": false
+  },
+  "ignores": [
+    "dbt/target/**",
+    "dbt/dbt_packages/**",
+    "node_modules/**"
+  ]
+}

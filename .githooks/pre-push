@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Pre-push hook: blocks direct pushes to main and runs linting.
+set -euo pipefail
+
+BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+
+if [[ "$BRANCH" == "main" || "$BRANCH" == "master" ]]; then
+    echo "ERROR: Direct push to '$BRANCH' is not allowed."
+    echo "Create a feature branch and open a pull/merge request instead."
+    exit 1
+fi
+
+echo "Running linters before push..."
+scripts/lint.sh --local

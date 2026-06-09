@@ -1,0 +1,150 @@
+models:
+  orchestration: claude-sonnet-4-5
+
+instructions:
+  response: |
+    {{ include('system-prompt.md') }}
+
+  orchestration: |
+    # Tool Routing
+
+    Use the warehouse_efficiency_analyst tool for warehouse credit consumption and
+    spend: total/period credit spend, spend by warehouse, top-spending warehouses,
+    compute vs cloud-services credits, and warehouse load vs credits (efficiency).
+
+    Use the query_insights_analyst tool for individual query behaviour: slow or
+    expensive queries, disk spilling, full table scans, partition pruning, queueing
+    and warehouse congestion, cache hit rates, and compute time by user or role.
+
+    Use the serverless_usage_analyst tool for serverless feature credits: automatic
+    clustering, Snowpipe (pipe usage), replication, and search optimization.
+
+    Use the data_to_chart tool to visualise results when a chart aids understanding
+    (trends over time, comparisons across warehouses/users).
+
+    # Skills routing
+
+    Use the cost_investigation skill when the user asks WHY spend changed, to
+    investigate a cost spike, or to find optimization opportunities.
+
+    Use the expensive_query_triage skill when the user asks for the biggest,
+    most expensive, or costliest queries, or which queries to optimize.
+
+    Use the warehouse_rightsizing skill when the user asks about idle, underused,
+    oversized, or wasteful warehouses, or how to tune auto-suspend / sizing.
+
+    Use the cost_report skill when the user asks for a cost report, spend summary,
+    or weekly/monthly review.
+
+    Use the cost_attribution skill when the user asks to break spend down by team,
+    user, role, query tag, or database, or for chargeback/showback.
+
+    Use the serverless_optimization skill when the user asks about serverless
+    spend — automatic clustering, search optimization, Snowpipe, or replication.
+
+    Use the health_check skill when the user asks about data freshness/recency or
+    asks you to self-test, or when results look implausible.
+
+    # Notes
+
+    SNOWFLAKE.ACCOUNT_USAGE has latency (typically up to ~45 min, up to ~3 h for
+    some views) — note this when reporting very recent activity.
+
+  sample_questions:
+    - question: "Give me a Snowflake cost report for the last 7 days, in dollars."
+    - question: "What have we spent on Snowflake so far this month, in dollars?"
+    - question: "Why did our Snowflake spend go up last week?"
+    - question: "What were our most expensive queries this week, and what did they cost?"
+    - question: "Which warehouses are idle or oversized, and how can we cut their cost?"
+    - question: "Break down our Snowflake spend by role over the last month."
+    - question: "Where are our serverless credits going — clustering, Snowpipe, search optimization?"
+    - question: "Is the cost data up to date? Run a freshness check."
+
+# =============================================================================
+# Skills — Markdown playbooks deployed to a Snowflake internal stage.
+# Each skill is a directory containing a SKILL.md file.
+# =============================================================================
+skills:
+  - name: "cost_investigation"
+    source:
+      type: "STAGE"
+      path: "@{{ database }}.{{ schema }}.AGENT_SKILLS_STAGE/skills/cost_investigation"
+  - name: "expensive_query_triage"
+    source:
+      type: "STAGE"
+      path: "@{{ database }}.{{ schema }}.AGENT_SKILLS_STAGE/skills/expensive_query_triage"
+  - name: "warehouse_rightsizing"
+    source:
+      type: "STAGE"
+      path: "@{{ database }}.{{ schema }}.AGENT_SKILLS_STAGE/skills/warehouse_rightsizing"
+  - name: "cost_report"
+    source:
+      type: "STAGE"
+      path: "@{{ database }}.{{ schema }}.AGENT_SKILLS_STAGE/skills/cost_report"
+  - name: "cost_attribution"
+    source:
+      type: "STAGE"
+      path: "@{{ database }}.{{ schema }}.AGENT_SKILLS_STAGE/skills/cost_attribution"
+  - name: "serverless_optimization"
+    source:
+      type: "STAGE"
+      path: "@{{ database }}.{{ schema }}.AGENT_SKILLS_STAGE/skills/serverless_optimization"
+  - name: "health_check"
+    source:
+      type: "STAGE"
+      path: "@{{ database }}.{{ schema }}.AGENT_SKILLS_STAGE/skills/health_check"
+
+# =============================================================================
+# Tools — Cortex Analyst instances (one per semantic view) + chart rendering.
+# =============================================================================
+tools:
+  - tool_spec:
+      type: "cortex_analyst_text_to_sql"
+      name: "warehouse_efficiency_analyst"
+      description: >-
+        Warehouse credit consumption and cost efficiency. Answers questions about
+        total and per-warehouse credit spend, spend trends and top spenders,
+        compute vs cloud-services credits, and warehouse load (running/queued) vs
+        credits. Backed by WAREHOUSE_METERING_HISTORY and WAREHOUSE_LOAD_HISTORY.
+  - tool_spec:
+      type: "cortex_analyst_text_to_sql"
+      name: "query_insights_analyst"
+      description: >-
+        Individual query performance and efficiency. Answers questions about slow
+        or expensive queries, disk spilling, full table scans / partition pruning,
+        queueing and warehouse congestion, cache hit rates, and compute time by
+        user or role. Backed by SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY.
+  - tool_spec:
+      type: "cortex_analyst_text_to_sql"
+      name: "serverless_usage_analyst"
+      description: >-
+        Serverless feature credit consumption: automatic clustering, Snowpipe
+        (pipe usage), replication, and search optimization. Use for credits spent
+        outside user-run warehouse compute.
+  - tool_spec:
+      type: "data_to_chart"
+      name: "data_to_chart"
+      description: "Generates visualizations from query results."
+
+# =============================================================================
+# Tool Resources — Maps each analyst tool to a semantic view + warehouse.
+# =============================================================================
+tool_resources:
+  warehouse_efficiency_analyst:
+    semantic_view: "{{ database }}.{{ schema }}.SV_WAREHOUSE_EFFICIENCY"
+    execution_environment:
+      type: "warehouse"
+      warehouse: "{{ warehouse }}"
+      query_timeout: 60
+  query_insights_analyst:
+    semantic_view: "{{ database }}.{{ schema }}.SV_QUERY_INSIGHTS"
+    execution_environment:
+      type: "warehouse"
+      warehouse: "{{ warehouse }}"
+      query_timeout: 60
+  serverless_usage_analyst:
+    semantic_view: "{{ database }}.{{ schema }}.SV_SERVERLESS_USAGE"
+    execution_environment:
+      type: "warehouse"
+      warehouse: "{{ warehouse }}"
+      query_timeout: 60

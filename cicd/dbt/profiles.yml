@@ -1,0 +1,31 @@
+# CI-only dbt profile — used by the GitHub Actions pipeline, NOT local dev.
+# Local development uses ~/.dbt/profiles.yml. The pipeline points dbt here via
+# DBT_PROFILES_DIR so the two never collide.
+#
+# All values come from GitHub Actions secrets/variables (see .github/workflows/deploy.yml).
+# Profile name MUST match `profile:` in dbt/dbt_project.yml.
+snowflake_cost_analyst:
+  target: "{{ env_var('DBT_TARGET', 'dev') }}"
+  outputs:
+    dev:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE_CICD') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE_DEV') }}"
+      schema: "{{ env_var('SNOWFLAKE_SCHEMA', 'AGENTS') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE') }}"
+      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH', '/tmp/sf_key.p8') }}"
+      private_key_passphrase: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PASSPHRASE', '') }}"
+      threads: 8
+    prod:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE_CICD') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE_PROD') }}"
+      schema: "{{ env_var('SNOWFLAKE_SCHEMA', 'AGENTS') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE') }}"
+      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH', '/tmp/sf_key.p8') }}"
+      private_key_passphrase: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PASSPHRASE', '') }}"
+      threads: 8

@@ -1,0 +1,55 @@
+# ============================================================================
+# Snowflake Cortex Agent — Project Configuration
+# ============================================================================
+# Fill in this file to customize the template for your project.
+# An AI coding assistant can read this file and guide you through setup.
+#
+# This template ships SnowBill, a ready-to-deploy Snowflake COST agent that
+# reads SNOWFLAKE.ACCOUNT_USAGE (available in every account). Set the values
+# below for your environment, then follow SETUP.md.
+# ============================================================================
+
+# === Required: Core Project Identity ===
+project_name: "snowflake-cost-analyst"       # kebab-case, used for repo/directory naming
+project_slug: "snowflake_cost_analyst"       # snake_case, used in dbt project name and code
+business_domain: "finops"                    # Your data domain (e.g. sales, marketing, ops)
+agent_name: "SnowBill"                        # Your agent's display name
+agent_description: "SnowBill is an AI agent that analyzes and optimizes Snowflake costs. It monitors credit consumption, identifies expensive queries and warehouses, surfaces spending anomalies, and recommends actionable optimizations — giving data and finance teams clear visibility into where their Snowflake budget is going and how to reduce it."
+
+# === Required: Snowflake Configuration ===
+snowflake_account: "ORGNAME-ACCOUNT"         # Account identifier (orgname-account), NOT the .snowflakecomputing.com host
+snowflake_database_dev: "MY_DEV_DB"          # Development database name
+snowflake_database_prod: "MY_PROD_DB"        # Production database name (set before deploying to prod)
+snowflake_schema: "AGENTS"                   # Schema where agent objects live
+snowflake_warehouse: "MY_WH"                 # Warehouse for agent queries
+snowflake_warehouse_cicd: "MY_WH"            # Warehouse for CI/CD deployments
+snowflake_role_cicd: "MY_AGENT_ROLE"         # Role used by CI/CD pipeline
+snowflake_role_etl: "MY_AGENT_ROLE"          # Role used for data transformations
+snowflake_role_agent: "MY_AGENT_ROLE"        # Role the agent runs as (for grants)
+
+# === Required: dbt Configuration ===
+dbt_mode: "core"                             # "cloud" or "core"
+dbt_cloud_project_id: null                   # Required if dbt_mode == "cloud"
+dbt_profile_name: "snowflake_cost_analyst"   # Profile name in profiles.yml (dbt core only)
+
+# === Required: Version Control ===
+vcs_provider: "github"                       # "github" or "gitlab"
+repo_url: "https://github.com/your-org/your-repo.git"  # Your repository URL
+default_branch: "main"                       # Main branch name
+
+# === Optional: Task Management ===
+task_management: "none"                      # "jira", "github_issues", "gitlab_issues", or "none"
+jira_project_key: null                       # Required if task_management == "jira"
+jira_base_url: null                          # e.g. "https://myorg.atlassian.net"
+
+# === Optional: Team Context ===
+team_name: ""                                # Your team name
+team_slack_channel: ""                       # Slack channel for alerts/notifications
+team_email: ""                               # Team contact email
+
+# === Optional: Agent Configuration ===
+agent_model: "claude-sonnet-4-5"             # LLM model for agent orchestration
+agent_locale: "en-US"                        # Locale (affects currency, date format, spelling)
+agent_currency: "USD"                        # Default currency symbol
+agent_timezone: "UTC"                        # Default timezone
+agent_credit_rate: "ASK"                     # Price per credit (e.g. "3.00"). "ASK" = agent prompts the user.
