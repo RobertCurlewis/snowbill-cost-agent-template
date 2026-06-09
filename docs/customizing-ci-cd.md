@@ -2,12 +2,7 @@
 
 ## Supported Platforms
 
-This template includes CI/CD configurations for:
-
-- **GitHub Actions** (`.github/workflows/deploy.yml`)
-- **GitLab CI** (`.gitlab-ci.yml`)
-
-Delete whichever you don't use.
+This template uses **GitHub Actions** (`.github/workflows/deploy.yml`) for CI/CD.
 
 ## Required Secrets / Variables
 

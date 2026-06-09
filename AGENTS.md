@@ -9,7 +9,7 @@ This is a Snowflake Cortex-based data agent that combines structured analytics d
 - **Agent framework**: Snowflake Cortex Agents (orchestrates Cortex Analyst + Cortex Search)
 - **Semantic layer**: Snowflake Semantic Views, managed via dbt using `dbt_semantic_view` package
 - **Data transformation**: dbt (Cloud or Core)
-- **CI/CD**: GitHub Actions or GitLab CI
+- **CI/CD**: GitHub Actions
 - **Configuration**: `cookiecutter.yml` (project-level settings)
 
 ## Code Conventions

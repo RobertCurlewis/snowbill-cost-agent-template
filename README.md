@@ -8,7 +8,7 @@ A production-ready template for building AI-powered data agents on Snowflake usi
 - **Semantic Views via dbt** — Type-safe analytical interfaces that ground the agent's SQL generation
 - **Skills System** — Prose-only Markdown playbooks for complex, repeatable agent workflows
 - **Evaluation Framework** — Automated quality testing for agent responses
-- **CI/CD Pipelines** — GitHub Actions and GitLab CI for automated deployment
+- **CI/CD Pipeline** — GitHub Actions for automated deployment
 - **DevContainer** — Reproducible development environment
 - **Linting** — SQL, YAML, Markdown, and shell script linting with auto-fix
 
@@ -47,7 +47,6 @@ graph TB
 ├── snowflake/                # Agent definition and Snowflake objects
 ├── cicd/                     # Deployment scripts
 ├── scripts/                  # Utility scripts
-├── examples/                 # Worked examples to learn from
 └── docs/                     # Additional documentation
 ```
 

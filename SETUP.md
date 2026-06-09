@@ -503,45 +503,32 @@ Or access via **Snowflake Intelligence UI** (recommended).
 
 ---
 
-## Step 7: Set Up CI/CD
+## Step 7: Set Up CI/CD (GitHub Actions)
 
-### IF vcs_provider == "github"
+The workflow at `.github/workflows/deploy.yml` lints on every PR and deploys to
+your Snowflake environment on merge to `main`. It deploys a single environment
+and **skips automatically until you set the variables below**, so a fresh fork
+stays green until you're ready.
 
-1. **Add secrets** to your GitHub repository settings:
-   - `SNOWFLAKE_ACCOUNT` — Your account identifier
-   - `SNOWFLAKE_USER` — CI/CD user name
-   - `SNOWFLAKE_PRIVATE_KEY` — Base64-encoded private key
+1. **Add repository secrets** (Settings → Secrets and variables → Actions → Secrets):
+   - `SNOWFLAKE_ACCOUNT` — account identifier (orgname-account)
+   - `SNOWFLAKE_USER` — CI/CD service user
+   - `SNOWFLAKE_PRIVATE_KEY` — base64-encoded private key
+   - `SNOWFLAKE_PRIVATE_KEY_PASSPHRASE` — passphrase (omit if the key is unencrypted)
 
-2. **Add variables** to environments (Settings → Environments):
-   - Environment `dev`:
-     - `SNOWFLAKE_DATABASE_DEV` — Dev database name
-     - `SNOWFLAKE_ROLE_CICD` — CI/CD role
-   - Environment `production`:
-     - `SNOWFLAKE_DATABASE_PROD` — Prod database name
-     - `SNOWFLAKE_ROLE_CICD` — CI/CD role
+2. **Add repository variables** (same screen → Variables):
+   - `SNOWFLAKE_DATABASE` — your database
+   - `SNOWFLAKE_SCHEMA` — your schema (e.g. `AGENTS`)
+   - `SNOWFLAKE_WAREHOUSE` — your warehouse
+   - `SNOWFLAKE_ROLE_CICD` — the CI/CD role
 
-3. **The workflow** at `.github/workflows/deploy.yml` is already configured.
-
-4. **Test**: Create a PR and verify the lint + deploy-dev jobs pass.
-
-### IF vcs_provider == "gitlab"
-
-1. **Add CI/CD variables** (Settings → CI/CD → Variables):
-   - `SNOWFLAKE_ACCOUNT`
-   - `SNOWFLAKE_USER`
-   - `SNOWFLAKE_PRIVATE_KEY` (masked)
-   - `SNOWFLAKE_DATABASE_DEV`
-   - `SNOWFLAKE_DATABASE_PROD`
-
-2. **The pipeline** at `.gitlab-ci.yml` is already configured.
-
-3. **Test**: Create an MR and verify the pipeline passes.
+3. **Test**: open a PR (the `lint` job runs), then merge to `main` (the `deploy`
+   job builds the semantic views and the agent).
 
 ### Verify Step 7
 
-- [ ] CI pipeline runs lint on PR/MR
-- [ ] CI pipeline deploys to dev on PR/MR
-- [ ] CI pipeline deploys to prod on tag (or main merge)
+- [ ] `lint` runs and passes on a PR
+- [ ] `deploy` runs on merge to `main` once the variables are set
 
 ---
 
@@ -658,12 +645,10 @@ your-agent-project/
 │   ├── deploy.sh
 │   └── upload_skills.sh
 │
-├── .github/workflows/            # GitHub Actions (delete if using GitLab)
-├── .gitlab-ci.yml                # GitLab CI (delete if using GitHub)
+├── .github/workflows/            # GitHub Actions CI/CD
 ├── .devcontainer/                # Dev container for reproducible env
 ├── .githooks/                    # Git hooks (pre-push lint)
-├── docs/                         # Additional documentation
-└── examples/                     # Worked examples (optional reference)
+└── docs/                         # Additional documentation
 ```
 
 ## Appendix B: Troubleshooting
