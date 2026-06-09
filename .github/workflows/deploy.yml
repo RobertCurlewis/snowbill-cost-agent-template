@@ -31,10 +31,12 @@ jobs:
         run: bash scripts/lint.sh
 
   # Single environment: deploys to the one Snowflake target on merge to main.
+  # Skips until the repo is configured (SNOWFLAKE_DATABASE variable set), so a
+  # fresh fork lints green without a failing deploy.
   deploy:
     name: Deploy to Snowflake
     needs: lint
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.SNOWFLAKE_DATABASE != ''
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
